@@ -411,6 +411,9 @@ namespace Excel__Module__Manager
                 return;
             }
 
+            // Disable compile module button
+            compileModuleButton.Enabled = false;
+
             // Module namespace
             string moduleNamespace = this.DisplayNameToNameSpace(Path.GetFileNameWithoutExtension(this.excelFile));
 
@@ -513,6 +516,9 @@ namespace Excel__Module__Manager
 
             // Advise user about successful compilation
             MessageBox.Show("Successful Module Compilation", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            // Enable compile module button
+            compileModuleButton.Enabled = true;
         }
 
         /// <summary>
@@ -547,58 +553,64 @@ namespace Excel__Module__Manager
         /// <param name="e">Event arguments.</param>
         private void DeleteButtonClick(object sender, EventArgs e)
         {
-            // Check there are files selected
-            if (removeModuleTypeListBox.SelectedItems.Count < 1)
+            //TODO Fix this
+            try
             {
-                // Halt flow
-                return;
-            }
 
-            // Ask user (as a policy for file removal)
-            if (MessageBox.Show("OK to remove files from disk permanently?", "File removal", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.OK)
-            {
-                // Set error flag
-                bool fileRemovalError = false;
-
-                // Save selected index
-                object removeModuleTypeListBoxSelectedItem = removeModuleTypeListBox.SelectedItem;
-
-                // Remove all selected modules
-                foreach (object item in removeModulesListBox.SelectedItems)
+                // Check there are files selected
+                if (removeModuleTypeListBox.SelectedItems.Count < 1)
                 {
-                    // Get excel sheet path
-                    string excelSheetPath = this.excelSheetsPath[moduleTypeListBox.Items[removeModuleTypeListBox.SelectedIndex].ToString().Replace(" ", string.Empty) + "." + DisplayNameToNameSpace(item.ToString())];
+                    // Halt flow
+                    return;
+                }
 
-                    try
+                // Ask user (as a policy for file removal)
+                if (MessageBox.Show("OK to remove files from disk permanently?", "File removal", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.OK)
+                {
+                    // Set error flag
+                    bool fileRemovalError = false;
+
+                    // Remove all selected modules
+                    foreach (object item in removeModulesListBox.SelectedItems)
                     {
-                        // Remove .dll       
-                        File.Delete(Path.Combine(Path.GetDirectoryName(excelSheetPath), Path.GetFileNameWithoutExtension(excelSheetPath) + ".dll"));
+                        // Get excel sheet path
+                        string excelSheetPath = this.excelSheetsPath[moduleTypeListBox.Items[removeModuleTypeListBox.SelectedIndex].ToString().Replace(" ", string.Empty) + "." + DisplayNameToNameSpace(item.ToString())];
 
-                        // Remove excel sheet
-                        File.Delete(excelSheetPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Set flag to true
-                        fileRemovalError = true;
-                    }
+                        try
+                        {
+                            // Remove .dll       
+                            File.Delete(Path.Combine(Path.GetDirectoryName(excelSheetPath), Path.GetFileNameWithoutExtension(excelSheetPath) + ".dll"));
 
-                    // Update module type list box count
-                    UpdateModuleTypeListBoxCount();
+                            // Remove excel sheet
+                            File.Delete(excelSheetPath);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Set flag to true
+                            fileRemovalError = true;
+                        }
+
+                        // Update module type list box count
+                        UpdateModuleTypeListBoxCount();
                     
-                    // Reload modules in framework
-                    this.marshal.GetType().GetMethod("ReloadModules").Invoke(this.marshal, null);
+                        // Reload modules in framework
+                        this.marshal.GetType().GetMethod("ReloadModules").Invoke(this.marshal, null);
 
-                    // Select tab
-                    this.marshal.GetType().GetMethod("SelectTab").Invoke(this.marshal, new object[] { this.moduleTypeListBox.Items[this.removeModuleTypeListBox.SelectedIndex].ToString().Replace(" ", string.Empty) });
+                        // Select tab
+                        this.marshal.GetType().GetMethod("SelectTab").Invoke(this.marshal, new object[] { this.moduleTypeListBox.Items[this.removeModuleTypeListBox.SelectedIndex].ToString().Replace(" ", string.Empty) });
 
-                    // Check for errors
-                    if (fileRemovalError)
-                    {
-                        // Advise user
-                        MessageBox.Show("There was an error when deleting files." + Environment.NewLine + "Please make sure no module is open at the moment of deleting it.", "File removal error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }                
+                        // Check for errors
+                        if (fileRemovalError)
+                        {
+                            // Advise user
+                            MessageBox.Show("There was an error when deleting files." + Environment.NewLine + "Please make sure no module is open at the moment of deleting it.", "File removal error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }                
+                }
+            }
+            catch (Exception ex)
+            {
+                // TODO Fix this
             }
         }
 
