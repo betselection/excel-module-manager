@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excel__Module__Manager", "Excel__Module__Manager.csproj", "{1DDCFF62-2C0B-4035-A4A3-C09E060CE32C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1DDCFF62-2C0B-4035-A4A3-C09E060CE32C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DDCFF62-2C0B-4035-A4A3-C09E060CE32C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DDCFF62-2C0B-4035-A4A3-C09E060CE32C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DDCFF62-2C0B-4035-A4A3-C09E060CE32C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Excel__Module__Manager.csproj
+	EndGlobalSection
+EndGlobal
