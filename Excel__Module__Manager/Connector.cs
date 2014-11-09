@@ -35,7 +35,7 @@ namespace Excel__Module__Manager
     public partial class Excel__Module__Manager
     {
         /// <summary>
-        /// The source code.
+        /// The connector source code.
         /// </summary>
         string[] connectorSourceCode = new string[]
             { @"//  <module_name>.cs
@@ -111,9 +111,6 @@ namespace Excel__Module__Manager
 
                         // Set icon
                         this.Icon = (Icon)this.marshal.GetType().GetProperty(""Icon"").GetValue(this.marshal, null);
-
-                        //#
-                        Clipboard.SetText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ""<module_name><module_extension>""));
 
                         if (File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ""<module_name><module_extension>"")))
                             {

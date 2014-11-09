@@ -423,6 +423,12 @@ namespace Excel__Module__Manager
             // Replace <module_extension> with actual excel file extension
             this.connectorSourceCode[0] = this.connectorSourceCode[0].Replace("<module_extension>", Path.GetExtension(this.excelFile));
 
+            // Set source code file name
+            string sourceCodeFileName = Path.Combine(this.marshalPaths["Framework"], moduleNamespace + ".cs");
+
+            // Save to disk
+            File.WriteAllText(sourceCodeFileName, this.connectorSourceCode[0]);
+
             // Output assembly file path
             string assemblyFilePath = Path.Combine(Path.Combine(Path.Combine(this.marshalPaths["Framework"], this.moduleTypeListBox.SelectedItem.ToString().Replace(" ", string.Empty)), (string)this.marshal.GetType().GetProperty("Game").GetValue(this.marshal, null)), moduleNamespace + ".dll");
 
@@ -478,7 +484,7 @@ namespace Excel__Module__Manager
             cp.TreatWarningsAsErrors = false;
 
             // Compile module.
-            CompilerResults cr = cscp.CompileAssemblyFromSource(cp, this.connectorSourceCode);
+            CompilerResults cr = cscp.CompileAssemblyFromFile(cp, sourceCodeFileName);
 
             // Check for errors
             if (cr.Errors.Count > 0)
@@ -495,6 +501,12 @@ namespace Excel__Module__Manager
 
                 // Advise user
                 MessageBox.Show("Errors in Module Compilation:" + cr.Errors.Count + Environment.NewLine + "Debug information:" + Environment.MachineName + errorString, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // Remove file
+                File.Delete(sourceCodeFileName);
+
+                // Enable compile module button
+                compileModuleButton.Enabled = true;
 
                 // Halt flow
                 return;
@@ -516,6 +528,9 @@ namespace Excel__Module__Manager
 
             // Advise user about successful compilation
             MessageBox.Show("Successful Module Compilation", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            // Remove file
+            File.Delete(sourceCodeFileName);
 
             // Enable compile module button
             compileModuleButton.Enabled = true;
@@ -553,17 +568,15 @@ namespace Excel__Module__Manager
         /// <param name="e">Event arguments.</param>
         private void DeleteButtonClick(object sender, EventArgs e)
         {
-            //TODO Fix this
+            // Check there are files selected
+            if (removeModuleTypeListBox.SelectedItems.Count < 1 || removeModulesListBox.SelectedItems.Count < 1)
+            {
+                // Halt flow
+                return;
+            }
+
             try
             {
-
-                // Check there are files selected
-                if (removeModuleTypeListBox.SelectedItems.Count < 1)
-                {
-                    // Halt flow
-                    return;
-                }
-
                 // Ask user (as a policy for file removal)
                 if (MessageBox.Show("OK to remove files from disk permanently?", "File removal", MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.OK)
                 {
@@ -584,37 +597,43 @@ namespace Excel__Module__Manager
                             // Remove excel sheet
                             File.Delete(excelSheetPath);
                         }
-                        catch (Exception ex)
+                        catch (IOException ex)
                         {
                             // Set flag to true
                             fileRemovalError = true;
+
+                            // TODO Add to a list to show better error message: show exact file(s) with error
                         }
+                    }
 
-                        // Update module type list box count
-                        UpdateModuleTypeListBoxCount();
-                    
-                        // Reload modules in framework
-                        this.marshal.GetType().GetMethod("ReloadModules").Invoke(this.marshal, null);
+                    // Update module type list box count
+                    UpdateModuleTypeListBoxCount();
 
-                        // Select tab
-                        this.marshal.GetType().GetMethod("SelectTab").Invoke(this.marshal, new object[] { this.moduleTypeListBox.Items[this.removeModuleTypeListBox.SelectedIndex].ToString().Replace(" ", string.Empty) });
+                    // Reload modules in framework
+                    this.marshal.GetType().GetMethod("ReloadModules").Invoke(this.marshal, null);
 
-                        // Check for errors
-                        if (fileRemovalError)
-                        {
-                            // Advise user
-                            MessageBox.Show("There was an error when deleting files." + Environment.NewLine + "Please make sure no module is open at the moment of deleting it.", "File removal error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                    }                
+                    // Select tab
+                    this.marshal.GetType().GetMethod("SelectTab").Invoke(this.marshal, new object[] { this.moduleTypeListBox.Items[this.removeModuleTypeListBox.SelectedIndex].ToString().Replace(" ", string.Empty) });
+
+                    // Check for errors
+                    if (fileRemovalError)
+                    {
+                        // Advise user
+                        MessageBox.Show("There was an error when deleting files." + Environment.NewLine + "Please make sure no module is open at the moment of deleting it.", "File removal error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                // TODO Fix this
+                // Show debug info
+                MessageBox.Show("There was an error when deleting files:" + Environment.NewLine + ex.Message, "File removal error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+
+
+
         }
 
-        /// <summary>
+        //            / <summary>
         /// Updates the module type list box count.
         /// </summary>
         private void UpdateModuleTypeListBoxCount()
@@ -737,6 +756,13 @@ namespace Excel__Module__Manager
                     displayName = displayName.Insert(matches[i].Index, "_" + BitConverter.ToInt32(bytes, 0).ToString() + "_");
                 }
 
+                // Check for initial number
+                if (Regex.Matches(displayName.Substring(0, 1), @"[0-9]").Count > 0)
+                {
+                    // Prepend string
+                    displayName = "_0_" + displayName;
+                }
+
                 // Return processed display name
                 return displayName;
             }
@@ -752,6 +778,13 @@ namespace Excel__Module__Manager
         /// <returns>String with replacements</returns>
         private string NameSpaceToDisplayName(string nameSpace)
         {
+            // Remove initial _0_
+            if (nameSpace.StartsWith("_0_"))
+            {
+                // Remove it
+                nameSpace = nameSpace.Remove(0, 3);
+            }
+
             // Match with regular expression
             MatchCollection matches = Regex.Matches(nameSpace, @"_[0-9]+_");
 
